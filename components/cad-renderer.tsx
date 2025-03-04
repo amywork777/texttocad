@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls, PerspectiveCamera, Grid, GizmoHelper, GizmoViewport, Html } from "@react-three/drei"
 import { CADObject } from "@/lib/types"
@@ -11,10 +11,10 @@ import { STLExporter } from "three/examples/jsm/exporters/STLExporter"
 import type * as THREE from "three"
 
 interface CADRendererProps {
-  objects: CADObject[]
+  objects?: CADObject[]
 }
 
-export default function CADRenderer({ objects }: CADRendererProps) {
+export default function CADRenderer({ objects = [] }: CADRendererProps) {
   const [showGrid, setShowGrid] = useState(true)
   const [showMeasurements, setShowMeasurements] = useState(false)
   const [viewMode, setViewMode] = useState("orbit")
@@ -83,12 +83,6 @@ export default function CADRenderer({ objects }: CADRendererProps) {
           sceneRef.current = scene
         }}
       >
-        {viewMode === "orbit" ? (
-          <PerspectiveCamera makeDefault position={[20, 20, 20]} />
-        ) : (
-          <PerspectiveCamera makeDefault position={[0, 50, 0]} rotation={[-Math.PI / 2, 0, 0]} />
-        )}
-
         <ambientLight intensity={0.5} />
         <directionalLight
           position={[10, 10, 5]}
@@ -98,9 +92,19 @@ export default function CADRenderer({ objects }: CADRendererProps) {
           shadow-mapSize-height={1024}
         />
 
-        {objects.map((obj, index) => (
-          <CADObject key={index} object={obj} showMeasurements={showMeasurements} />
-        ))}
+        {viewMode === "orbit" ? (
+          <PerspectiveCamera makeDefault position={[20, 20, 20]} />
+        ) : (
+          <PerspectiveCamera makeDefault position={[0, 50, 0]} rotation={[-Math.PI / 2, 0, 0]} />
+        )}
+
+        {objects && objects.length > 0 ? (
+          objects.map((obj, index) => (
+            <CADObject key={index} object={obj} showMeasurements={showMeasurements} />
+          ))
+        ) : (
+          <EmptyState />
+        )}
 
         {showGrid && <Grid infiniteGrid fadeDistance={50} fadeStrength={5} />}
 
@@ -140,6 +144,15 @@ function CADObject({ object, showMeasurements }: { object: CADObject; showMeasur
         </group>
       )}
     </group>
+  )
+}
+
+function EmptyState() {
+  return (
+    <mesh position={[0, 0, 0]}>
+      <sphereGeometry args={[1, 32, 32]} />
+      <meshStandardMaterial color="#cccccc" wireframe />
+    </mesh>
   )
 }
 

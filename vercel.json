@@ -5,11 +5,14 @@
       "src": "package.json",
       "use": "@vercel/next",
       "config": {
-        "installCommand": "npm install --legacy-peer-deps && npm install tailwindcss@latest postcss@latest autoprefixer@latest --no-save"
+        "installCommand": "npm install --legacy-peer-deps && npm install tailwindcss@latest postcss@latest autoprefixer@latest postcss-import style-loader css-loader postcss-loader --no-save"
       }
     }
   ],
   "buildCommand": "npm run vercel-build",
   "framework": "nextjs",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "env": {
+    "NEXT_TELEMETRY_DISABLED": "1"
+  }
 } 

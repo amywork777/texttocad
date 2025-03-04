@@ -22,14 +22,25 @@ const nextConfig = {
     parallelServerCompiles: true,
   },
   webpack: (config, { isServer }) => {
-    // Add aliases for improved path resolution
+    // Properly resolving path aliases
     config.resolve.alias = {
       ...config.resolve.alias,
       '@/components': './components',
-      '@/lib': './lib'
+      '@/lib': './lib',
+      '@/app': './app',
+      '@/styles': './styles'
     };
+    
+    // Add extra loaders for CSS handling
+    config.module.rules.push({
+      test: /\.css$/,
+      use: ['style-loader', 'css-loader', 'postcss-loader'],
+    });
+    
     return config;
-  }
+  },
+  // Force trailing slash for better compatibility
+  trailingSlash: true
 }
 
 mergeConfig(nextConfig, userConfig)

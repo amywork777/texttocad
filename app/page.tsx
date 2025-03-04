@@ -1,15 +1,18 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState, Suspense } from "react"
+import { Button } from "../components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../components/ui/card"
+import { Textarea } from "../components/ui/textarea"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Loader2, Lightbulb } from "lucide-react"
 import dynamic from "next/dynamic"
-import type { CADObject } from "@/lib/types"
+import type { CADObject } from "../lib/types"
 
-const CADRenderer = dynamic(() => import("@/components/cad-renderer"), { ssr: false })
+const CADRenderer = dynamic(() => import("../components/cad-renderer"), { 
+  ssr: false,
+  loading: () => <div className="w-full h-full min-h-[400px] flex items-center justify-center">Loading 3D renderer...</div>
+})
 
 export default function Home() {
   const [prompt, setPrompt] = useState("")

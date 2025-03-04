@@ -5,12 +5,25 @@ export interface Vector3 {
 }
 
 export interface CADObject {
-  type: "cube" | "sphere" | "cylinder" | "cone"
-  position: Vector3
-  rotation: Vector3
-  scale: Vector3
-  color: string
-  name: string
+  // Geometry properties
+  type: string;
+  position?: [number, number, number];
+  rotation?: [number, number, number];
+  dimensions?: [number, number, number];
+  radius?: number;
+  height?: number;
+  depth?: number;
+  width?: number;
+  color?: string;
+  
+  // Metadata
+  name?: string;
+  description?: string;
+  material?: string;
+  
+  // Additional properties for complex objects
+  children?: CADObject[];
+  parameters?: Record<string, any>;
 }
 
 export interface GeneratedCAD {
