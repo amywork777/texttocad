@@ -68,8 +68,8 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@react-three/drei": "^9.99.5",
-    "ai": "^2.2.35",
-    "@ai-sdk/openai": "^0.10.0"
+    "ai": "^4.1.50",
+    "@ai-sdk/openai": "^1.2.0"
   },
   "devDependencies": {
     "@types/node": "^22",
