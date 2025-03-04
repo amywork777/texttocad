@@ -31,12 +31,6 @@ const nextConfig = {
       '@/styles': './styles'
     };
     
-    // Add extra loaders for CSS handling
-    config.module.rules.push({
-      test: /\.css$/,
-      use: ['style-loader', 'css-loader', 'postcss-loader'],
-    });
-    
     return config;
   },
   // Force trailing slash for better compatibility
