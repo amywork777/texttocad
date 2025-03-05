@@ -220,21 +220,18 @@ export default function Home() {
   ]
 
   return (
-    <main className="container mx-auto p-4 min-h-screen flex flex-col bg-gradient-to-br from-buildfish-mint/10 via-transparent to-buildfish-sunshine/10">
+    <main className="container mx-auto p-4 min-h-screen flex flex-col bg-white">
       <header className="py-6">
-        <h1 className="text-4xl font-bold font-heading bg-gradient-to-r from-buildfish-oxford to-buildfish-sunset bg-clip-text text-transparent">
-          BuildFish AI
+        <h1 className="text-4xl font-bold font-heading text-slate-800">
+          Text to 3D
         </h1>
-        <p className="text-muted-foreground mt-2 font-sans">
-          Transform your ideas into 3D models with AI-powered precision
-        </p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
-        <Card className="lg:col-span-1 border-buildfish-mint/20 shadow-xl backdrop-blur-sm bg-white/50 overflow-hidden">
+        <Card className="lg:col-span-1 border shadow-md bg-white overflow-hidden">
           <CardHeader className="pb-4">
-            <CardTitle className="font-heading text-buildfish-oxford flex items-center gap-2">
-              <span className="bg-buildfish-mint/20 w-8 h-8 rounded-full flex items-center justify-center text-buildfish-oxford">
+            <CardTitle className="font-heading text-slate-800 flex items-center gap-2">
+              <span className="bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center text-slate-600">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M12 2v8"></path><path d="m4.93 10.93 1.41 1.41"></path><path d="M2 18h2"></path><path d="M20 18h2"></path><path d="m19.07 10.93-1.41 1.41"></path><path d="M22 22H2"></path><path d="m16 6-4 4-4-4"></path><path d="M16 18a4 4 0 0 0-8 0"></path></svg>
               </span>
               Model Description
@@ -245,7 +242,7 @@ export default function Home() {
             <div className="relative">
               <Textarea
                 placeholder="Describe your 3D model here..."
-                className="min-h-[150px] border-buildfish-mint/20 focus-visible:ring-buildfish-mint bg-white/70 pr-10"
+                className="min-h-[150px] border focus-visible:ring-slate-400 bg-white pr-10"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
               />
@@ -254,7 +251,7 @@ export default function Home() {
                   type="button"
                   size="icon"
                   variant="ghost" 
-                  className={`absolute right-2 bottom-2 h-8 w-8 rounded-full ${isListening ? 'bg-red-100 text-red-600' : 'hover:bg-buildfish-mint/20 text-buildfish-oxford'}`}
+                  className={`absolute right-2 bottom-2 h-8 w-8 rounded-full ${isListening ? 'bg-red-100 text-red-600' : 'hover:bg-slate-100 text-slate-600'}`}
                   onClick={toggleListening}
                   disabled={isGenerating}
                 >
@@ -265,7 +262,7 @@ export default function Home() {
             </div>
 
             {isListening && (
-              <div className="mt-2 text-xs text-buildfish-oxford bg-buildfish-mint/20 p-2 rounded-md flex items-center">
+              <div className="mt-2 text-xs text-slate-700 bg-slate-100 p-2 rounded-md flex items-center">
                 <Mic className="h-3 w-3 mr-1 animate-pulse" />
                 Listening... speak now. Click the mic button again to stop.
               </div>
@@ -273,7 +270,7 @@ export default function Home() {
 
             <div className="mt-4">
               <h3 className="text-sm font-medium mb-2 font-heading flex items-center gap-2">
-                <span className="bg-buildfish-sunset/20 w-5 h-5 rounded-full flex items-center justify-center text-buildfish-sunset">
+                <span className="bg-slate-100 w-5 h-5 rounded-full flex items-center justify-center text-slate-600">
                   <Lightbulb className="h-3 w-3" />
                 </span>
                 Example prompts:
@@ -285,9 +282,9 @@ export default function Home() {
                     variant="outline"
                     size="sm"
                     onClick={() => setPrompt(example)}
-                    className="text-xs border-buildfish-sunset/20 hover:bg-buildfish-sunset/10 bg-white/70"
+                    className="text-xs border-slate-200 hover:bg-slate-100 bg-white"
                   >
-                    <Lightbulb className="h-3 w-3 mr-1 text-buildfish-sunset" />
+                    <Lightbulb className="h-3 w-3 mr-1 text-slate-600" />
                     {example.length > 30 ? example.substring(0, 30) + "..." : example}
                   </Button>
                 ))}
@@ -298,7 +295,7 @@ export default function Home() {
             <Button
               onClick={handleGenerate}
               disabled={isGenerating || !prompt.trim()}
-              className="w-full bg-buildfish-oxford hover:bg-buildfish-oxford/90 shadow-lg transition-all duration-300 hover:translate-y-[-2px]"
+              className="w-full bg-slate-800 hover:bg-slate-700 shadow-md transition-all duration-300 hover:translate-y-[-2px]"
             >
               {isGenerating ? (
                 <>
@@ -315,26 +312,26 @@ export default function Home() {
           </CardFooter>
         </Card>
 
-        <Card className="lg:col-span-2 border-buildfish-mint/20 shadow-xl backdrop-blur-sm bg-white/50">
+        <Card className="lg:col-span-2 border shadow-md bg-white">
           <Tabs defaultValue="model">
             <CardHeader className="pb-0">
               <div className="flex justify-between items-center">
-                <CardTitle className="font-heading text-buildfish-oxford flex items-center gap-2">
-                  <span className="bg-buildfish-oxford/20 w-8 h-8 rounded-full flex items-center justify-center text-buildfish-oxford">
+                <CardTitle className="font-heading text-slate-800 flex items-center gap-2">
+                  <span className="bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center text-slate-600">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.29 7 12 12 20.71 7"></polyline><line x1="12" y1="22" x2="12" y2="12"></line></svg>
                   </span>
                   CAD Model
                 </CardTitle>
-                <TabsList className="bg-buildfish-mint/10">
+                <TabsList className="bg-slate-100">
                   <TabsTrigger
                     value="model"
-                    className="data-[state=active]:bg-buildfish-mint data-[state=active]:text-buildfish-oxford"
+                    className="data-[state=active]:bg-slate-600 data-[state=active]:text-white"
                   >
                     Model
                   </TabsTrigger>
                   <TabsTrigger
                     value="details"
-                    className="data-[state=active]:bg-buildfish-mint data-[state=active]:text-buildfish-oxford"
+                    className="data-[state=active]:bg-slate-600 data-[state=active]:text-white"
                   >
                     Details
                   </TabsTrigger>
@@ -343,7 +340,7 @@ export default function Home() {
             </CardHeader>
             <CardContent className="p-0">
               <TabsContent value="model" className="m-0">
-                <div className="w-full h-[500px] rounded-md overflow-hidden bg-gradient-to-b from-slate-100 to-slate-200">
+                <div className="w-full h-[500px] rounded-md overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100">
                   {error ? (
                     <div className="h-full flex items-center justify-center bg-red-50 p-6">
                       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md text-center flex flex-col items-center">
@@ -359,10 +356,10 @@ export default function Home() {
                   ) : (
                     <div className="h-full flex items-center justify-center bg-white">
                       <div className="text-center p-8 max-w-md">
-                        <div className="mx-auto w-16 h-16 mb-4 bg-buildfish-mint/20 rounded-full flex items-center justify-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-buildfish-oxford"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                        <div className="mx-auto w-16 h-16 mb-4 bg-slate-100 rounded-full flex items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-slate-600"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
                         </div>
-                        <h3 className="text-xl font-semibold text-buildfish-oxford mb-2">Ready to Generate</h3>
+                        <h3 className="text-xl font-semibold text-slate-800 mb-2">Ready to Generate</h3>
                         <p className="text-gray-500">Enter a description and click Generate to create your 3D model</p>
                       </div>
                     </div>

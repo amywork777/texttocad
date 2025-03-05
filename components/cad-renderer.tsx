@@ -144,11 +144,11 @@ export default function CADRenderer({ objects = [], metadata }: CADRendererProps
           {metadata.description && <p className="text-xs mt-1 text-gray-300">{metadata.description}</p>}
           <div className="mt-2 flex flex-wrap gap-2">
             {metadata.category && (
-              <Badge variant="outline" className="text-xs border-buildfish-mint text-buildfish-mint">
+              <Badge variant="outline" className="text-xs border-slate-400 text-slate-300">
                 {metadata.category}
               </Badge>
             )}
-            <Badge variant="outline" className="text-xs border-buildfish-sunset text-buildfish-sunset">
+            <Badge variant="outline" className="text-xs border-slate-400 text-slate-300">
               {objects.length} parts
             </Badge>
           </div>
@@ -159,7 +159,7 @@ export default function CADRenderer({ objects = [], metadata }: CADRendererProps
       <div className="absolute top-4 right-4 z-10">
         <Button 
           onClick={handleDownloadSTL} 
-          className="bg-buildfish-sunset hover:bg-buildfish-sunset/90 text-white"
+          className="bg-slate-800 hover:bg-slate-700 text-white"
           disabled={!exporterLoaded}
         >
           <Download className="h-4 w-4 mr-2" />
