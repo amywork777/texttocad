@@ -61,9 +61,9 @@ export async function generateCADModel(prompt: string): Promise<GeneratedCAD> {
 
     console.log("Starting CAD model generation with prompt:", prompt.substring(0, 50) + "...");
     
-    // Use a model that's more likely to be available (gpt-3.5-turbo instead of gpt-4/gpt-4o)
+    // Use GPT-4o model as requested
     const response = await generateText({
-      model: openai("gpt-3.5-turbo"),
+      model: openai("gpt-4o"),
       system: SYSTEM_PROMPT,
       prompt: `Create a detailed 3D CAD model for: ${prompt}. Consider spatial relationships, functionality, and engineering principles in your design.`,
       temperature: 0.7,
