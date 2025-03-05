@@ -4,6 +4,24 @@ import { generateText } from "ai"
 import { openai } from "@ai-sdk/openai"
 import type { GeneratedCAD } from "./types"
 
+// Helper function to verify API key
+const getOpenAIKey = () => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    console.error("OPENAI_API_KEY is not set in environment variables");
+    throw new Error("OpenAI API key is not configured");
+  }
+  return apiKey;
+};
+
+// Initialize the OpenAI client with a function to ensure the key is available
+const getOpenAIConfig = () => {
+  return {
+    apiKey: getOpenAIKey(),
+    baseURL: process.env.OPENAI_API_BASE_URL || "https://api.openai.com/v1",
+  };
+};
+
 const SYSTEM_PROMPT = `
 You are a CAD model generator that converts text descriptions into 3D models composed of primitive shapes.
 Analyze the description and create a detailed 3D model using cubes, spheres, cylinders, and cones.
@@ -54,16 +72,18 @@ function evaluateExpressions(obj: any): any {
 export async function generateCADModel(prompt: string): Promise<GeneratedCAD> {
   try {
     // Check if API key is available
-    if (!process.env.OPENAI_API_KEY) {
-      console.error("OPENAI_API_KEY is not set in environment variables");
-      throw new Error("OpenAI API key is not configured");
-    }
-
     console.log("Starting CAD model generation with prompt:", prompt.substring(0, 50) + "...");
     
-    // Use GPT-4o model as requested
+    // Get OpenAI configuration
+    const openAIConfig = getOpenAIConfig();
+    console.log("OpenAI configuration created");
+    
+    // Use a model that's specified or default to gpt-4o
+    const modelName = process.env.NEXT_PUBLIC_DEFAULT_MODEL || "gpt-4o";
+    console.log("Using model:", modelName);
+    
     const response = await generateText({
-      model: openai("gpt-4o"),
+      model: openai(modelName as any, openAIConfig as any), // Type casting to avoid TypeScript errors
       system: SYSTEM_PROMPT,
       prompt: `Create a detailed 3D CAD model for: ${prompt}. Consider spatial relationships, functionality, and engineering principles in your design.`,
       temperature: 0.7,
