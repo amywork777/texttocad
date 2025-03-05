@@ -1,5 +1,3 @@
-"use server"
-
 import type { GeneratedCAD } from "./types"
 
 const SYSTEM_PROMPT = `
@@ -50,26 +48,25 @@ function evaluateExpressions(obj: any): any {
 }
 
 // Direct OpenAI API call without using the AI SDK
-export async function generateCADModel(prompt: string): Promise<GeneratedCAD> {
+export async function generateCADModel(prompt: string, customApiKey?: string): Promise<GeneratedCAD> {
   try {
     console.log("Starting CAD model generation with prompt:", prompt.substring(0, 50) + "...");
     
-    // More robust API key handling
-    let apiKey = process.env.OPENAI_API_KEY;
+    // Use either the provided API key or try to get it from env
+    let apiKey = customApiKey || process.env.OPENAI_API_KEY;
     
-    // Log the environment for debugging (safely)
-    console.log("Node Environment:", process.env.NODE_ENV);
+    // Log info for debugging
+    console.log("API Key source:", customApiKey ? "direct input" : "environment variable");
     console.log("API Key available:", !!apiKey);
     
     if (!apiKey) {
-      console.error("OPENAI_API_KEY is not set in environment variables");
+      console.error("OPENAI_API_KEY is not set in environment variables or provided directly");
       throw new Error("OpenAI API key is not configured");
     }
     
-    console.log("OpenAI API key available with length:", apiKey.length);
-    
-    const baseUrl = process.env.OPENAI_API_BASE_URL || "https://api.openai.com/v1";
-    const modelName = process.env.NEXT_PUBLIC_DEFAULT_MODEL || "gpt-4o";
+    // Fixed OpenAI API URL and model since environment variables might be the issue
+    const baseUrl = "https://api.openai.com/v1";
+    const modelName = "gpt-4o";
     
     console.log("Using OpenAI API URL:", baseUrl);
     console.log("Using model:", modelName);
