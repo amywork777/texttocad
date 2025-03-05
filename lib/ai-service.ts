@@ -5,56 +5,38 @@ import { openai } from "@ai-sdk/openai"
 import type { GeneratedCAD } from "./types"
 
 const SYSTEM_PROMPT = `
-You are a CAD model generator that converts text descriptions into 3D models composed of primitive shapes and CSG operations.
-Analyze the description and create a detailed 3D model using primitive shapes (cubes, spheres, cylinders, and cones) combined with CSG operations.
-Consider spatial relationships, proportions, and engineering principles in your design.
+You are an expert CAD model generator with deep knowledge of mechanical engineering and 3D design principles. Your task is to convert text descriptions into precise, physically accurate 3D models composed of primitive shapes.
+Analyze the description carefully and create a detailed 3D model using cubes, spheres, cylinders, and cones.
+Consider spatial relationships, proportions, engineering principles, material properties, and real-world physics in your design.
 
 Your response must be valid JSON with this structure:
 {
   "objects": [
     {
-      "type": "cube" | "sphere" | "cylinder" | "cone" | "csg",
+      "type": "cube" | "sphere" | "cylinder" | "cone",
       "position": { "x": number, "y": number, "z": number },
       "rotation": { "x": number, "y": number, "z": number },
       "scale": { "x": number, "y": number, "z": number },
       "color": string (hex color code),
-      "name": string,
-      
-      // For CSG operations (when type is "csg"):
-      "operation": "union" | "subtract" | "intersect",
-      "children": [
-        // Array of objects that are combined with the CSG operation
-        // Each child follows the same structure as regular objects
-        {
-          "type": "cube" | "sphere" | "cylinder" | "cone",
-          "position": { "x": number, "y": number, "z": number },
-          "rotation": { "x": number, "y": number, "z": number },
-          "scale": { "x": number, "y": number, "z": number },
-          "color": string (hex color code),
-          "name": string
-        },
-        // More children...
-      ]
+      "name": string
     },
-    // More objects...
+    ...
   ]
 }
 
-Guidelines:
-1. Use precise measurements. Assume 1 unit = 1 cm.
-2. Position (0,0,0) is the center of the model.
-3. Consider how parts connect and interact.
-4. Use rotation in radians.
-5. Provide descriptive names for each part.
-6. Use color to differentiate parts (use hex color codes).
-7. Consider the functionality and practicality of the design.
-8. Aim for a balance between detail and simplicity.
-9. Use CSG operations to create more complex shapes:
-   - "union": combines two or more shapes (A + B)
-   - "subtract": subtracts one shape from another (A - B)
-   - "intersect": keeps only the overlapping portion of shapes (A ∩ B)
-10. For CSG operations, position each child object relative to the parent CSG object.
-11. Complex designs should use a combination of primitives and CSG operations.
+Guidelines for maximum accuracy:
+1. Use precise measurements based on real-world dimensions. Assume 1 unit = 1 cm exactly.
+2. Position (0,0,0) is the center of the model. Build outward from this origin point.
+3. Ensure all parts connect and interact properly with appropriate tolerances and clearances.
+4. Use rotation in radians with precise angles for proper alignment.
+5. Provide detailed, descriptive names for each part reflecting their function.
+6. Use realistic color hex codes that match typical materials for each component.
+7. Prioritize functionality, structural integrity, and mechanical feasibility.
+8. Consider weight distribution, center of gravity, and mechanical advantage in your design.
+9. When appropriate, use mathematical expressions (e.g., Math.PI/2) for precise alignment.
+10. Create the minimum number of parts needed for accuracy - avoid over-complication.
+11. Ensure dimensions are proportionally accurate relative to each other.
+12. Consider standard engineering tolerances for fits between moving parts.
 `
 
 function evaluateExpressions(obj: any): any {
