@@ -1,26 +1,6 @@
 "use server"
 
-import { generateText } from "ai"
-import { openai } from "@ai-sdk/openai"
 import type { GeneratedCAD } from "./types"
-
-// Helper function to verify API key
-const getOpenAIKey = () => {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    console.error("OPENAI_API_KEY is not set in environment variables");
-    throw new Error("OpenAI API key is not configured");
-  }
-  return apiKey;
-};
-
-// Initialize the OpenAI client with a function to ensure the key is available
-const getOpenAIConfig = () => {
-  return {
-    apiKey: getOpenAIKey(),
-    baseURL: process.env.OPENAI_API_BASE_URL || "https://api.openai.com/v1",
-  };
-};
 
 const SYSTEM_PROMPT = `
 You are a CAD model generator that converts text descriptions into 3D models composed of primitive shapes.
@@ -69,41 +49,73 @@ function evaluateExpressions(obj: any): any {
   return obj
 }
 
+// Direct OpenAI API call without using the AI SDK
 export async function generateCADModel(prompt: string): Promise<GeneratedCAD> {
   try {
-    // Check if API key is available
     console.log("Starting CAD model generation with prompt:", prompt.substring(0, 50) + "...");
     
-    // Get OpenAI configuration
-    const openAIConfig = getOpenAIConfig();
-    console.log("OpenAI configuration created");
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      console.error("OPENAI_API_KEY is not set in environment variables");
+      throw new Error("OpenAI API key is not configured");
+    }
     
-    // Use a model that's specified or default to gpt-4o
+    console.log("OpenAI API key available");
+    
+    const baseUrl = process.env.OPENAI_API_BASE_URL || "https://api.openai.com/v1";
     const modelName = process.env.NEXT_PUBLIC_DEFAULT_MODEL || "gpt-4o";
-    console.log("Using model:", modelName);
     
-    const response = await generateText({
-      model: openai(modelName as any, openAIConfig as any), // Type casting to avoid TypeScript errors
-      system: SYSTEM_PROMPT,
-      prompt: `Create a detailed 3D CAD model for: ${prompt}. Consider spatial relationships, functionality, and engineering principles in your design.`,
-      temperature: 0.7,
-      maxTokens: 2000,
-    })
+    console.log("Using OpenAI API URL:", baseUrl);
+    console.log("Using model:", modelName);
 
-    console.log("OpenAI response received, processing JSON");
+    // Make a direct fetch call to OpenAI API
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: modelName,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: `Create a detailed 3D CAD model for: ${prompt}. Consider spatial relationships, functionality, and engineering principles in your design.` }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error("OpenAI API error:", response.status, errorData);
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("OpenAI response received");
+    
+    const content = data.choices && data.choices[0]?.message?.content;
+    
+    if (!content) {
+      console.error("Invalid response from OpenAI API:", data);
+      throw new Error("Invalid response from OpenAI API");
+    }
+    
+    console.log("Processing JSON response");
 
     const jsonMatch =
-      response.text.match(/```json\n([\s\S]*?)\n```/) ||
-      response.text.match(/```\n([\s\S]*?)\n```/) ||
-      response.text.match(/\{[\s\S]*\}/)
-
+      content.match(/```json\n([\s\S]*?)\n```/) ||
+      content.match(/```\n([\s\S]*?)\n```/) ||
+      content.match(/\{[\s\S]*\}/);
+      
     if (!jsonMatch) {
-      console.error("No valid JSON found in response:", response.text);
+      console.error("No valid JSON found in response:", content);
       throw new Error("Invalid response format: no JSON found");
     }
 
-    let jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : response.text
-    jsonString = jsonString.replace(/^```json\n|^```\n|```$/g, "").trim()
+    let jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : content;
+    jsonString = jsonString.replace(/^```json\n|^```\n|```$/g, "").trim();
 
     try {
       const parsedJson = JSON.parse(jsonString);
@@ -116,14 +128,14 @@ export async function generateCADModel(prompt: string): Promise<GeneratedCAD> {
 
       return {
         objects: evaluatedData.objects,
-        rawResponse: response.text,
-      }
+        rawResponse: content
+      };
     } catch (jsonError) {
       console.error("JSON parsing error:", jsonError, "Raw JSON:", jsonString);
       throw new Error("Failed to parse model data");
     }
   } catch (error) {
-    console.error("Error generating CAD model:", error)
-    throw new Error("Failed to generate CAD model. Please try again.")
+    console.error("Error generating CAD model:", error);
+    throw new Error("Failed to generate CAD model. Please try again.");
   }
 }
