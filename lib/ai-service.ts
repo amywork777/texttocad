@@ -53,35 +53,57 @@ function evaluateExpressions(obj: any): any {
 
 export async function generateCADModel(prompt: string): Promise<GeneratedCAD> {
   try {
+    // Check if API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("OPENAI_API_KEY is not set in environment variables");
+      throw new Error("OpenAI API key is not configured");
+    }
+
+    console.log("Starting CAD model generation with prompt:", prompt.substring(0, 50) + "...");
+    
+    // Use a model that's more likely to be available (gpt-3.5-turbo instead of gpt-4/gpt-4o)
     const response = await generateText({
-      model: openai("gpt-4"),
+      model: openai("gpt-3.5-turbo"),
       system: SYSTEM_PROMPT,
       prompt: `Create a detailed 3D CAD model for: ${prompt}. Consider spatial relationships, functionality, and engineering principles in your design.`,
       temperature: 0.7,
       maxTokens: 2000,
     })
 
+    console.log("OpenAI response received, processing JSON");
+
     const jsonMatch =
       response.text.match(/```json\n([\s\S]*?)\n```/) ||
       response.text.match(/```\n([\s\S]*?)\n```/) ||
       response.text.match(/\{[\s\S]*\}/)
 
+    if (!jsonMatch) {
+      console.error("No valid JSON found in response:", response.text);
+      throw new Error("Invalid response format: no JSON found");
+    }
+
     let jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : response.text
     jsonString = jsonString.replace(/^```json\n|^```\n|```$/g, "").trim()
 
-    const evaluatedData = evaluateExpressions(JSON.parse(jsonString))
+    try {
+      const parsedJson = JSON.parse(jsonString);
+      const evaluatedData = evaluateExpressions(parsedJson);
 
-    if (!evaluatedData.objects || !Array.isArray(evaluatedData.objects)) {
-      throw new Error("Invalid response format: missing objects array")
-    }
+      if (!evaluatedData.objects || !Array.isArray(evaluatedData.objects)) {
+        console.error("Invalid objects array in response:", evaluatedData);
+        throw new Error("Invalid response format: missing objects array");
+      }
 
-    return {
-      objects: evaluatedData.objects,
-      rawResponse: response.text,
+      return {
+        objects: evaluatedData.objects,
+        rawResponse: response.text,
+      }
+    } catch (jsonError) {
+      console.error("JSON parsing error:", jsonError, "Raw JSON:", jsonString);
+      throw new Error("Failed to parse model data");
     }
   } catch (error) {
     console.error("Error generating CAD model:", error)
     throw new Error("Failed to generate CAD model. Please try again.")
   }
 }
-
