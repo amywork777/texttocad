@@ -28,7 +28,9 @@ export default function Home() {
     setError(null)
 
     try {
-      const response = await fetch("/api/generate", {
+      console.log("Making API request to /api/generate with prompt:", prompt.substring(0, 30) + "...");
+      
+      const response = await fetch("/api/generate/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -36,16 +38,31 @@ export default function Home() {
         body: JSON.stringify({ prompt }),
       })
 
+      console.log("API response status:", response.status);
+      
+      // Try to get the error message from the response
+      let errorMessage = "Failed to generate CAD model";
+      try {
+        const errorData = await response.clone().json();
+        if (errorData && errorData.error) {
+          errorMessage = errorData.error;
+        }
+      } catch (e) {
+        console.error("Error parsing error response:", e);
+      }
+      
       if (!response.ok) {
-        throw new Error("Failed to generate CAD model")
+        throw new Error(errorMessage);
       }
 
       const result = await response.json()
+      console.log("API response data received successfully");
+      
       setCADObjects(result.objects || [])
       setAiResponse(result.rawResponse || null)
     } catch (err) {
-      setError(typeof err === "string" ? err : "Failed to generate CAD model. Please try again.")
-      console.error(err)
+      console.error("Error in handleGenerate:", err);
+      setError(err instanceof Error ? err.message : "Failed to generate CAD model. Please try again.");
     } finally {
       setIsGenerating(false)
     }

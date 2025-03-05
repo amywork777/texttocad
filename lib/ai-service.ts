@@ -58,6 +58,7 @@ export async function generateCADModel(prompt: string, customApiKey?: string): P
     // Log info for debugging
     console.log("API Key source:", customApiKey ? "direct input" : "environment variable");
     console.log("API Key available:", !!apiKey);
+    console.log("API Key first 3 chars:", apiKey ? apiKey.substring(0, 3) : "none");
     
     if (!apiKey) {
       console.error("OPENAI_API_KEY is not set in environment variables or provided directly");
@@ -66,80 +67,103 @@ export async function generateCADModel(prompt: string, customApiKey?: string): P
     
     // Fixed OpenAI API URL and model since environment variables might be the issue
     const baseUrl = "https://api.openai.com/v1";
-    const modelName = "gpt-4o";
+    const modelName = "gpt-3.5-turbo"; // Try a different model as a test
     
     console.log("Using OpenAI API URL:", baseUrl);
     console.log("Using model:", modelName);
 
-    // Make a direct fetch call to OpenAI API
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: modelName,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: `Create a detailed 3D CAD model for: ${prompt}. Consider spatial relationships, functionality, and engineering principles in your design.` }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000
-      }),
-      cache: "no-store" // Ensure no caching issues
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error("OpenAI API error:", response.status, errorData);
-      throw new Error(`OpenAI API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log("OpenAI response received");
-    
-    const content = data.choices && data.choices[0]?.message?.content;
-    
-    if (!content) {
-      console.error("Invalid response from OpenAI API:", data);
-      throw new Error("Invalid response from OpenAI API");
-    }
-    
-    console.log("Processing JSON response");
-
-    const jsonMatch =
-      content.match(/```json\n([\s\S]*?)\n```/) ||
-      content.match(/```\n([\s\S]*?)\n```/) ||
-      content.match(/\{[\s\S]*\}/);
-      
-    if (!jsonMatch) {
-      console.error("No valid JSON found in response:", content);
-      throw new Error("Invalid response format: no JSON found");
-    }
-
-    let jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : content;
-    jsonString = jsonString.replace(/^```json\n|^```\n|```$/g, "").trim();
-
     try {
-      const parsedJson = JSON.parse(jsonString);
-      const evaluatedData = evaluateExpressions(parsedJson);
+      // Make a direct fetch call to OpenAI API
+      console.log("Making OpenAI API request...");
+      const response = await fetch(`${baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: `Create a detailed 3D CAD model for: ${prompt}. Consider spatial relationships, functionality, and engineering principles in your design.` }
+          ],
+          temperature: 0.7,
+          max_tokens: 2000
+        }),
+        cache: "no-store" // Ensure no caching issues
+      });
 
-      if (!evaluatedData.objects || !Array.isArray(evaluatedData.objects)) {
-        console.error("Invalid objects array in response:", evaluatedData);
-        throw new Error("Invalid response format: missing objects array");
+      console.log("OpenAI API response status:", response.status);
+      
+      // Get response text regardless of success for better error reporting
+      const responseText = await response.text();
+      console.log("Response text length:", responseText.length);
+      console.log("Response text preview:", responseText.substring(0, 100) + "...");
+      
+      if (!response.ok) {
+        console.error("OpenAI API error:", response.status, responseText);
+        throw new Error(`OpenAI API error: Status ${response.status} - ${responseText.substring(0, 200)}`);
+      }
+      
+      // Parse JSON after we've verified it's a successful response
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (jsonError) {
+        console.error("Failed to parse OpenAI response as JSON:", jsonError);
+        throw new Error("Invalid JSON response from OpenAI API");
+      }
+      
+      console.log("OpenAI response received and parsed successfully");
+      
+      const content = data.choices && data.choices[0]?.message?.content;
+      
+      if (!content) {
+        console.error("Invalid response from OpenAI API:", data);
+        throw new Error("Invalid response from OpenAI API: missing content");
+      }
+      
+      console.log("Processing JSON response");
+
+      const jsonMatch =
+        content.match(/```json\n([\s\S]*?)\n```/) ||
+        content.match(/```\n([\s\S]*?)\n```/) ||
+        content.match(/\{[\s\S]*\}/);
+        
+      if (!jsonMatch) {
+        console.error("No valid JSON found in response:", content);
+        throw new Error("Invalid response format: no JSON found in content");
       }
 
-      return {
-        objects: evaluatedData.objects,
-        rawResponse: content
-      };
-    } catch (jsonError) {
-      console.error("JSON parsing error:", jsonError, "Raw JSON:", jsonString);
-      throw new Error("Failed to parse model data");
+      let jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : content;
+      jsonString = jsonString.replace(/^```json\n|^```\n|```$/g, "").trim();
+
+      try {
+        const parsedJson = JSON.parse(jsonString);
+        const evaluatedData = evaluateExpressions(parsedJson);
+
+        if (!evaluatedData.objects || !Array.isArray(evaluatedData.objects)) {
+          console.error("Invalid objects array in response:", evaluatedData);
+          throw new Error("Invalid response format: missing or invalid objects array");
+        }
+
+        console.log("Successfully processed CAD model data with", evaluatedData.objects.length, "objects");
+        
+        return {
+          objects: evaluatedData.objects,
+          rawResponse: content
+        };
+      } catch (jsonError: any) {
+        console.error("JSON parsing error:", jsonError, "Raw JSON:", jsonString);
+        throw new Error(`Failed to parse model data: ${jsonError.message || "Unknown error"}`);
+      }
+    } catch (fetchError: any) {
+      console.error("Fetch error when calling OpenAI API:", fetchError);
+      throw new Error(`Error calling OpenAI API: ${fetchError.message || "Unknown error"}`);
     }
   } catch (error) {
     console.error("Error generating CAD model:", error);
-    throw new Error("Failed to generate CAD model. Please try again.");
+    // Pass the actual error message up
+    throw error instanceof Error ? error : new Error("Failed to generate CAD model. Please try again.");
   }
 }
