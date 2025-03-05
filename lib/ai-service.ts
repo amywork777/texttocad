@@ -54,13 +54,19 @@ export async function generateCADModel(prompt: string): Promise<GeneratedCAD> {
   try {
     console.log("Starting CAD model generation with prompt:", prompt.substring(0, 50) + "...");
     
-    const apiKey = process.env.OPENAI_API_KEY;
+    // More robust API key handling
+    let apiKey = process.env.OPENAI_API_KEY;
+    
+    // Log the environment for debugging (safely)
+    console.log("Node Environment:", process.env.NODE_ENV);
+    console.log("API Key available:", !!apiKey);
+    
     if (!apiKey) {
       console.error("OPENAI_API_KEY is not set in environment variables");
       throw new Error("OpenAI API key is not configured");
     }
     
-    console.log("OpenAI API key available");
+    console.log("OpenAI API key available with length:", apiKey.length);
     
     const baseUrl = process.env.OPENAI_API_BASE_URL || "https://api.openai.com/v1";
     const modelName = process.env.NEXT_PUBLIC_DEFAULT_MODEL || "gpt-4o";
@@ -83,7 +89,8 @@ export async function generateCADModel(prompt: string): Promise<GeneratedCAD> {
         ],
         temperature: 0.7,
         max_tokens: 2000
-      })
+      }),
+      cache: "no-store" // Ensure no caching issues
     });
 
     if (!response.ok) {
