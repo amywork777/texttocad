@@ -54,7 +54,7 @@ function evaluateExpressions(obj: any): any {
 export async function generateCADModel(prompt: string): Promise<GeneratedCAD> {
   try {
     const response = await generateText({
-      model: openai("gpt-4o"),
+      model: openai("gpt-4"),
       system: SYSTEM_PROMPT,
       prompt: `Create a detailed 3D CAD model for: ${prompt}. Consider spatial relationships, functionality, and engineering principles in your design.`,
       temperature: 0.7,
