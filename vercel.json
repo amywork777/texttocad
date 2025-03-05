@@ -6,6 +6,8 @@
   "outputDirectory": ".next",
   "env": {
     "NEXT_TELEMETRY_DISABLED": "1",
-    "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+    "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+    "OPENAI_API_BASE_URL": "https://api.openai.com/v1",
+    "NEXT_PUBLIC_DEFAULT_MODEL": "gpt-4o"
   }
 } 
